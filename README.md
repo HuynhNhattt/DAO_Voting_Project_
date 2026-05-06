@@ -89,6 +89,8 @@ npm run coverage
 ```bash
 # Mở Ganache UI trước, port 7545, chainId 1337
 npx hardhat run scripts/setup_demo.js --network ganache
+# sau khi run setup_demo.js xong nhập 
+npx hardhat run scripts/setup_campaign.js --network ganache
 ```
 
 ### Bước 6: Chạy Dashboard
