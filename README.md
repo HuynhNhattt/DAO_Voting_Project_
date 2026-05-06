@@ -117,5 +117,4 @@ streamlit run dashboard/app.py --server.fileWatcherType none
 - [x] **Phase 1** — Smart Contracts (Token + Registry + Governance + Timelock)
 - [x] **Phase 2** — Deploy scripts + Test suite (4 kịch bản)
 - [x] **Phase 3** — Python utilities (distribution + web3 helpers)
-- [ ] **Phase 4** — Streamlit Dashboard
-- [ ] **Phase 5** — Testnet deploy (Polygon Amoy)
+- [x] **Phase 4** — Streamlit Dashboard
