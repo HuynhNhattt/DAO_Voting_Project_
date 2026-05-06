@@ -192,7 +192,8 @@ async function main() {
   └─────────────────────────────────────────────────────────┘
 
   ✅ Setup hoàn tất! Chạy dashboard:
-     streamlit run dashboard/app.py
+     $env:PYTHONUTF8=1
+     streamlit run dashboard/app.py --server.fileWatcherType none
   `);
 }
 

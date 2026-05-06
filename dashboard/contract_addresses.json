@@ -1,53 +1,81 @@
 {
   "network": "ganache",
-  "deployedAt": "2026-05-06T06:41:26.089Z",
-  "deployBlock": 30,
-  "hstToken": "0x0953c0077730FBC33849843004d73227c4944d72",
-  "registry": "0xf428dDe15481082E288Ef77dBeB76545BDBBC8a5",
-  "governance": "0xF1AEe21f4874bcDa2C25a0eDDf5CB4fe4311a6be",
-  "timelock": "0x7B431BE7dFFDD85961D8f163cfF6a0E8B961567c",
+  "deployedAt": "2026-05-06T13:31:13.558Z",
+  "deployBlock": 60,
+  "hstToken": "0x8f0Ed60dcF7b668Fc9E0D13d067F0a5dd72fDF11",
+  "registry": "0xC23EF7De35e4a7a29Ed38c1e0e19153427fBD5fD",
+  "governance": "0xD31e2e42BF3B16C5B117a1A512416a06ce3dD983",
+  "timelock": "0x44CaC67e9bA035D2ca8dd9C8dEa2D241ef43B45b",
   "shareholders": [
     {
       "index": 0,
       "name": "Chủ tịch HĐQT",
-      "address": "0x49fdb0E3272f2F111C0BDa2C7089310cf761F628",
+      "address": "0x7CdDA1906f74bC60489c88014E59D43c5aE1E090",
       "hst": "4500000",
       "tier": 3
     },
     {
       "index": 1,
       "name": "Quỹ phát triển",
-      "address": "0x12d603FD9ef8fE4Dc75c544415A70Aaa3C26F95a",
+      "address": "0xF154cdf664a7503dc99F583F3938Ae1025DB5700",
       "hst": "2500000",
       "tier": 2
     },
     {
       "index": 2,
       "name": "Cổ đông A (Tổ chức)",
-      "address": "0x0eE6f1d973aFBecD7A1BAA67CaDCB9401E9e50D2",
+      "address": "0x925A4276bb6dc38f343986545Ff93173205c51B5",
       "hst": "1500000",
       "tier": 1
     },
     {
       "index": 3,
       "name": "Cổ đông B (Tổ chức)",
-      "address": "0xa8Dc993c031f7AFcbae417d610AE3640F5198b55",
+      "address": "0xFd0Cc892A5c8F13f82234f1d19DCA19fe7Dcd59a",
       "hst": "1000000",
       "tier": 1
     },
     {
       "index": 4,
       "name": "Cổ đông C (Nhỏ lẻ)",
-      "address": "0x6aB8E577bBB6Fdf9Ea265c92B8Fa236C3F9De7a1",
+      "address": "0x78f45F34CdB10fF819C1706228012B50DbD91985",
       "hst": "500000",
       "tier": 0
+    }
+  ],
+  "campaigns": [
+    {
+      "id": 1,
+      "title": "Phê duyệt ngân sách R&D 2025",
+      "proposalType": 0,
+      "mechanism": 0,
+      "commitReveal": false,
+      "label": "ID-101 · Routine · Linear · KQ: ✅ PASS"
     },
     {
-      "index": 5,
-      "name": "Ví không hợp lệ",
-      "address": "0x5402E23cD1890B432C541422a4eb592023742610",
-      "hst": "0",
-      "tier": 0
+      "id": 2,
+      "title": "Chia cổ tức 15% năm 2024",
+      "proposalType": 1,
+      "mechanism": 0,
+      "commitReveal": false,
+      "label": "ID-102 · Major · Linear · KQ: ✅ PASS"
+    },
+    {
+      "id": 3,
+      "title": "Bầu CEO mới — So sánh Linear vs Quadratic",
+      "proposalType": 1,
+      "mechanism": 1,
+      "commitReveal": false,
+      "label": "ID-103 · Major · Quadratic · KQ: ❌ KHÔNG ĐẠT (Quadratic bảo vệ thiểu số)"
+    },
+    {
+      "id": 4,
+      "title": "Sáp nhập M&A — TechCorp Ltd",
+      "proposalType": 2,
+      "mechanism": 0,
+      "commitReveal": true,
+      "label": "ID-104 · M&A · Linear · Commit-Reveal (đang ở giai đoạn COMMIT)"
     }
-  ]
+  ],
+  "campaignsSetupAt": "2026-05-06T13:31:35.108Z"
 }
