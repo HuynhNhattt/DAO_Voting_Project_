@@ -1,0 +1,47 @@
+{
+  "name": "dao-voting-system",
+  "version": "2.1.0",
+  "description": "DAO Voting System — Blockchain Governance Platform cho cổ đông",
+  "author": "Đồ án sinh viên",
+  "license": "MIT",
+  "private": true,
+  "scripts": {
+    "compile": "hardhat compile",
+    "test": "hardhat test",
+    "test:gas": "REPORT_GAS=true hardhat test",
+    "test:token": "hardhat test test/HSTToken.test.js",
+    "test:gov": "hardhat test test/Governance.test.js",
+    "coverage": "hardhat coverage",
+    "deploy:local": "hardhat run scripts/setup_demo.js --network hardhat",
+    "deploy:ganache": "hardhat run scripts/setup_demo.js --network ganache",
+    "deploy:amoy": "hardhat run scripts/setup_demo.js --network amoy",
+    "node": "hardhat node",
+    "clean": "hardhat clean",
+    "lint": "solhint 'contracts/**/*.sol'",
+    "dashboard": "cd dashboard && streamlit run app.py"
+  },
+  "dependencies": {
+    "@openzeppelin/contracts": "^4.9.6"
+  },
+  "devDependencies": {
+    "@nomicfoundation/hardhat-chai-matchers": "^2.0.7",
+    "@nomicfoundation/hardhat-ethers": "^3.0.6",
+    "@nomicfoundation/hardhat-network-helpers": "^1.0.10",
+    "@nomicfoundation/hardhat-toolbox": "^5.0.0",
+    "@nomicfoundation/hardhat-verify": "^2.0.9",
+    "@typechain/ethers-v6": "^0.5.1",
+    "@typechain/hardhat": "^9.1.0",
+    "chai": "^4.4.1",
+    "dotenv": "^16.4.5",
+    "ethers": "^6.11.1",
+    "hardhat": "^2.22.3",
+    "hardhat-gas-reporter": "^1.0.10",
+    "solhint": "^5.0.1",
+    "solidity-coverage": "^0.8.12",
+    "typechain": "^8.3.2"
+  },
+  "engines": {
+    "node": ">=18.0.0",
+    "npm": ">=9.0.0"
+  }
+}

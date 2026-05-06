@@ -1,0 +1,53 @@
+{
+  "network": "ganache",
+  "deployedAt": "2026-05-06T06:41:26.089Z",
+  "deployBlock": 30,
+  "hstToken": "0x0953c0077730FBC33849843004d73227c4944d72",
+  "registry": "0xf428dDe15481082E288Ef77dBeB76545BDBBC8a5",
+  "governance": "0xF1AEe21f4874bcDa2C25a0eDDf5CB4fe4311a6be",
+  "timelock": "0x7B431BE7dFFDD85961D8f163cfF6a0E8B961567c",
+  "shareholders": [
+    {
+      "index": 0,
+      "name": "Chủ tịch HĐQT",
+      "address": "0x49fdb0E3272f2F111C0BDa2C7089310cf761F628",
+      "hst": "4500000",
+      "tier": 3
+    },
+    {
+      "index": 1,
+      "name": "Quỹ phát triển",
+      "address": "0x12d603FD9ef8fE4Dc75c544415A70Aaa3C26F95a",
+      "hst": "2500000",
+      "tier": 2
+    },
+    {
+      "index": 2,
+      "name": "Cổ đông A (Tổ chức)",
+      "address": "0x0eE6f1d973aFBecD7A1BAA67CaDCB9401E9e50D2",
+      "hst": "1500000",
+      "tier": 1
+    },
+    {
+      "index": 3,
+      "name": "Cổ đông B (Tổ chức)",
+      "address": "0xa8Dc993c031f7AFcbae417d610AE3640F5198b55",
+      "hst": "1000000",
+      "tier": 1
+    },
+    {
+      "index": 4,
+      "name": "Cổ đông C (Nhỏ lẻ)",
+      "address": "0x6aB8E577bBB6Fdf9Ea265c92B8Fa236C3F9De7a1",
+      "hst": "500000",
+      "tier": 0
+    },
+    {
+      "index": 5,
+      "name": "Ví không hợp lệ",
+      "address": "0x5402E23cD1890B432C541422a4eb592023742610",
+      "hst": "0",
+      "tier": 0
+    }
+  ]
+}
