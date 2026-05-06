@@ -35,7 +35,7 @@ dao-voting-system/
 ├── hardhat.config.js
 ├── package.json
 ├── requirements.txt
-└── .env.
+└── .env
 ```
 
 ---
