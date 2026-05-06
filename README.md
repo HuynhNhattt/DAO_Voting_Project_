@@ -35,7 +35,7 @@ dao-voting-system/
 ├── hardhat.config.js
 ├── package.json
 ├── requirements.txt
-└── .env.example
+└── .env.
 ```
 
 ---
@@ -61,7 +61,7 @@ pip install -r requirements.txt
 ### Bước 2: Cấu hình môi trường
 
 ```bash
-cp .env.example .env
+cp .env .env
 # Điền private keys từ Ganache vào .env
 ```
 
@@ -94,7 +94,8 @@ npx hardhat run scripts/setup_demo.js --network ganache
 ### Bước 6: Chạy Dashboard
 
 ```bash
-streamlit run dashboard/app.py
+$env:PYTHONUTF8=1
+streamlit run dashboard/app.py --server.fileWatcherType none
 # Mở: http://localhost:8501
 ```
 
