@@ -42,6 +42,31 @@ st.markdown("""
 [data-testid="stAppViewContainer"] { background: #0f1117; }
 [data-testid="stSidebar"] { background: #161b27 !important; border-right: 1px solid #2a2f3e; }
 
+/* Scrollbar lớn hơn, dễ kéo */
+::-webkit-scrollbar { width: 10px; height: 10px; }
+::-webkit-scrollbar-track { background: #1a1f2e; border-radius: 6px; }
+::-webkit-scrollbar-thumb { background: #3a4a6a; border-radius: 6px; border: 2px solid #1a1f2e; }
+::-webkit-scrollbar-thumb:hover { background: #4a7afa; }
+
+/* Nút Xem chi tiết — sát card, nhỏ gọn */
+div[data-testid="stButton"] > button[kind="secondary"] {
+    margin-top: -4px !important;
+    border-radius: 0 0 12px 12px !important;
+    border: 1px solid #2a3a5e !important;
+    border-top: none !important;
+    background: #1a2236 !important;
+    color: #4a9eff !important;
+    font-size: 12px !important;
+    padding: 4px 12px !important;
+    height: auto !important;
+    line-height: 1.6 !important;
+}
+div[data-testid="stButton"] > button[kind="secondary"]:hover {
+    background: #1e2d4a !important;
+    border-color: #4a7afa !important;
+    color: #6ab4ff !important;
+}
+
 /* Cards */
 .dao-card {
     background: linear-gradient(135deg, #1a1f2e 0%, #1e2535 100%);
@@ -112,9 +137,16 @@ with st.sidebar:
     st.markdown("**Blockchain Governance Platform**")
     st.markdown("---")
 
+    # Handle redirect from "Xem chi tiết" button on Tổng quan
+    _default_page_idx = 0
+    if st.session_state.get("goto_campaign_page"):
+        _default_page_idx = 2
+        st.session_state["goto_campaign_page"] = False
+
     page = st.radio(
         "Điều hướng",
         ["🏠 Tổng quan", "👥 Cổ đông", "🗳️ Chiến dịch", "📊 Phân tích", "⚙️ Hướng dẫn"],
+        index=_default_page_idx,
         label_visibility="collapsed"
     )
 
@@ -274,19 +306,25 @@ if "🏠 Tổng quan" in page:
         st.markdown('<div class="section-header">📋 Chiến dịch gần đây</div>', unsafe_allow_html=True)
         for c in campaigns[:4]:
             total = c["forVotes"] + c["againstVotes"] + c["abstainVotes"]
-            st.markdown(f"""
-            <div class="dao-card">
-                <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
-                    <b style="color:#eef">#{c['id']} — {c['title']}</b>
-                    {status_badge(c['status'])}
-                </div>
-                <div style="font-size:12px;color:#778;margin-bottom:8px">
-                    📌 {c['proposalType']} &nbsp;|&nbsp; ⚙️ {c['mechanism']}
-                    {'&nbsp;|&nbsp; 🔒 Commit-Reveal' if c.get('isCommitReveal') else ''}
-                </div>
-                {vote_bar(c['forVotes'], c['againstVotes'], c['abstainVotes']) if total > 0 else '<div style="color:#556;font-size:12px">Chưa có phiếu</div>'}
-            </div>
-            """, unsafe_allow_html=True)
+            campaign_key = f"#{c['id']} — {c['title']}"
+            _bar_html = vote_bar(c['forVotes'], c['againstVotes'], c['abstainVotes']) if total > 0 else '<div style="color:#556;font-size:12px">Chưa có phiếu</div>'
+            _badge_html = status_badge(c['status'])
+            _commit_html = '&nbsp;|&nbsp; 🔒 Commit-Reveal' if c.get('isCommitReveal') else ''
+            st.markdown(
+                '<div class="dao-card" style="padding-bottom:10px">'
+                '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">'
+                f'<b style="color:#eef">#{c["id"]} — {c["title"]}</b>'
+                + _badge_html +
+                '</div>'
+                f'<div style="font-size:12px;color:#778;margin-bottom:8px">📌 {c["proposalType"]} &nbsp;|&nbsp; ⚙️ {c["mechanism"]}' + _commit_html + '</div>'
+                + _bar_html +
+                '</div>',
+                unsafe_allow_html=True
+            )
+            if st.button("Xem chi tiết →", key=f"goto_{c['id']}", use_container_width=True):
+                st.session_state["selected_campaign"] = campaign_key
+                st.session_state["goto_campaign_page"] = True
+                st.rerun()
 
     with col_right:
         st.markdown('<div class="section-header">👥 Phân bổ Token</div>', unsafe_allow_html=True)
@@ -414,9 +452,12 @@ elif "🗳️ Chiến dịch" in page:
             if live_campaigns: campaigns = live_campaigns
         except: pass
 
-    # Campaign selector
+    # Campaign selector — hỗ trợ điều hướng từ trang Tổng quan
     campaign_options = {f"#{c['id']} — {c['title']}": c for c in campaigns}
-    selected_key = st.selectbox("Chọn chiến dịch", list(campaign_options.keys()))
+    option_list = list(campaign_options.keys())
+    _preselect = st.session_state.pop("selected_campaign", None)
+    _default_idx = option_list.index(_preselect) if _preselect and _preselect in option_list else 0
+    selected_key = st.selectbox("Chọn chiến dịch", option_list, index=_default_idx)
     c = campaign_options[selected_key]
 
     st.markdown("---")
@@ -427,16 +468,18 @@ elif "🗳️ Chiến dịch" in page:
         st.markdown(f"## #{c['id']} — {c['title']}")
         st.markdown(f"*{c['description']}*")
     with col_status:
-        st.markdown(f"""
-        <div style="text-align:center;padding:20px;background:#1a1f2e;border-radius:12px;margin-top:10px">
-            {status_badge(c['status'])}
-            <div style="margin-top:10px;font-size:12px;color:#778">
-                <div>📌 {c['proposalType']}</div>
-                <div style="margin-top:4px">⚙️ {c['mechanism']}</div>
-                {'<div style="margin-top:4px">🔒 Commit-Reveal</div>' if c.get('isCommitReveal') else ''}
-            </div>
-        </div>
-        """, unsafe_allow_html=True)
+        _commit_div = '<div style="margin-top:4px">🔒 Commit-Reveal</div>' if c.get('isCommitReveal') else ''
+        _status_badge = status_badge(c['status'])
+        st.markdown(
+            '<div style="text-align:center;padding:20px;background:#1a1f2e;border-radius:12px;margin-top:10px">'
+            + _status_badge +
+            f'<div style="margin-top:10px;font-size:12px;color:#778">'
+            f'<div>📌 {c["proposalType"]}</div>'
+            f'<div style="margin-top:4px">⚙️ {c["mechanism"]}</div>'
+            + _commit_div +
+            '</div></div>',
+            unsafe_allow_html=True
+        )
 
     st.markdown("---")
 
@@ -598,26 +641,32 @@ elif "📊 Phân tích" in page:
             quorum_ok = cd["participation"] >= cd["quorum"]
             bar_pct = min(cd["participation"], 100)
             color = "#2ddc64" if quorum_ok else "#e0a020"
-            st.markdown(f"""
-            <div class="dao-card" style="margin:8px 0">
-                <div style="display:flex;justify-content:space-between;margin-bottom:8px">
-                    <b style="color:#eef">{cd['id']}</b>
-                    <span>{status_badge(cd['status'])}</span>
-                </div>
-                <div style="display:flex;gap:16px;font-size:12px;color:#778;margin-bottom:8px">
-                    <span>📌 {cd['type']}</span>
-                    <span>Quorum yêu cầu: {cd['quorum']}%</span>
-                    <span>FOR: {cd['for_pct']:.1f}%</span>
-                </div>
-                <div style="background:#1a1f2e;border-radius:6px;height:14px;overflow:hidden">
-                    <div style="width:{bar_pct}%;background:linear-gradient(90deg,{color}88,{color});height:100%;border-radius:6px"></div>
-                </div>
-                <div style="display:flex;justify-content:space-between;margin-top:4px;font-size:11px">
-                    <span style="color:{color}">{'✅' if quorum_ok else '⚠️'} Tham gia: {cd['participation']:.1f}%</span>
-                    {'<span style="color:#2ddc64">Quorum đạt</span>' if quorum_ok and cd["participation"]>0 else '<span style="color:#e0a020">Chưa đủ quorum</span>' if not quorum_ok else '<span style="color:#778">Chưa có phiếu</span>'}
-                </div>
-            </div>
-            """, unsafe_allow_html=True)
+            _quorum_icon = '✅' if quorum_ok else '⚠️'
+            if quorum_ok and cd["participation"] > 0:
+                _quorum_label = '<span style="color:#2ddc64">Quorum đạt</span>'
+            elif not quorum_ok:
+                _quorum_label = '<span style="color:#e0a020">Chưa đủ quorum</span>'
+            else:
+                _quorum_label = '<span style="color:#778">Chưa có phiếu</span>'
+            _sbadge = status_badge(cd['status'])
+            st.markdown(
+                '<div class="dao-card" style="margin:8px 0">'
+                '<div style="display:flex;justify-content:space-between;margin-bottom:8px">'
+                f'<b style="color:#eef">{cd["id"]}</b>'
+                '<span>' + _sbadge + '</span>'
+                '</div>'
+                f'<div style="display:flex;gap:16px;font-size:12px;color:#778;margin-bottom:8px">'
+                f'<span>📌 {cd["type"]}</span>'
+                f'<span>Quorum yêu cầu: {cd["quorum"]}%</span>'
+                f'<span>FOR: {cd["for_pct"]:.1f}%</span></div>'
+                f'<div style="background:#1a1f2e;border-radius:6px;height:14px;overflow:hidden">'
+                f'<div style="width:{bar_pct}%;background:linear-gradient(90deg,{color}88,{color});height:100%;border-radius:6px"></div></div>'
+                f'<div style="display:flex;justify-content:space-between;margin-top:4px;font-size:11px">'
+                f'<span style="color:{color}">{_quorum_icon} Tham gia: {cd["participation"]:.1f}%</span>'
+                + _quorum_label +
+                '</div></div>',
+                unsafe_allow_html=True
+            )
 
     with tab3:
         st.markdown("### 🔬 ID-103: Linear vs Quadratic — CEO Election")
@@ -710,7 +759,8 @@ elif "⚙️ Hướng dẫn" in page:
 
         ### 6. Chạy Dashboard
         ```bash
-        streamlit run dashboard/app.py
+        $env:PYTHONUTF8=1
+        streamlit run dashboard/app.py --server.fileWatcherType none
         # → Mở http://localhost:8501
         # → Click "Kết nối Ganache" trong sidebar
         ```
