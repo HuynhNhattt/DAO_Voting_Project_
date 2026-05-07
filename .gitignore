@@ -1,4 +1,20 @@
+# Node.js
 node_modules/
+
+# Hardhat / Smart Contract
 artifacts/
 cache/
+typechain-types/
+typechain/
+
+# Các file môi trường (Chặn mọi biến thể của file .env)
 .env
+.env.*
+!.env.example
+
+# Các file test và báo cáo
+coverage/
+coverage.json
+
+# Khác (Tùy chọn)
+.DS_Store
