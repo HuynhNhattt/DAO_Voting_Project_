@@ -49,7 +49,7 @@ def load_abi(contract_name: str) -> list:
             f"ABI không tìm thấy: {abi_path}\n"
             "Hãy chạy: npx hardhat compile"
         )
-    with open(abi_path) as f:
+    with open(abi_path, encoding='utf-8') as f:
         artifact = json.load(f)
     return artifact["abi"]
 
@@ -65,7 +65,7 @@ def load_addresses() -> dict:
             f"Không tìm thấy {ADDRESSES_FILE}\n"
             "Hãy chạy: npx hardhat run scripts/setup_demo.js"
         )
-    with open(ADDRESSES_FILE) as f:
+    with open(ADDRESSES_FILE, encoding='utf-8') as f:
         return json.load(f)
 
 
@@ -164,9 +164,9 @@ def get_campaign_data(gov: Contract, campaign_id: int) -> Optional[dict]:
             "revealStart":     raw[12],
             "revealDeadline":  raw[13],
             "isCommitReveal":  raw[14],
-            "forVotes":        raw[15] / 10**18,
-            "againstVotes":    raw[16] / 10**18,
-            "abstainVotes":    raw[17] / 10**18,
+            "forVotes":        raw[15],
+            "againstVotes":    raw[16],
+            "abstainVotes":    raw[17],
             "passThreshold":   raw[18] / 100,  # basis points → %
             "quorumBps":       raw[19] / 100,
         }

@@ -59,6 +59,12 @@ async function main() {
   const registryAddress = await registry.getAddress();
   log(`✅ ShareholderRegistry deployed: ${registryAddress}`);
 
+  // Burn toàn bộ 10M token ban đầu của accounts[0] TRƯỚC khi transfer ownership
+  // → Registry sẽ mint lại đúng số cho từng cổ đông qua addShareholder
+  const initialSupply = await hst.totalSupply();
+  await hst.burn(accounts[0].address, initialSupply);
+  log(`   Burned ${fmt(Number(ethers.formatUnits(initialSupply, 18)))} HST ban đầu ✅`);
+
   // Chuyển ownership HSTToken sang Registry để Registry có thể mint
   await hst.transferOwnership(registryAddress);
   log(`   HSTToken ownership → Registry ✅`);
@@ -91,8 +97,8 @@ async function main() {
   // ── 5. Đăng ký cổ đông + phân bổ token ────────────────────────────────────
   section("5️⃣  Phân bổ token cho cổ đông");
 
-  // accounts[0] đã giữ toàn bộ supply từ constructor
-  // Cần transfer cho accounts[1..4], accounts[5] giữ 0
+  // Tất cả accounts đều dùng registry.addShareholder() để mint đúng số token.
+  // accounts[0] đã được burn 10M ở bước trên → supply = 0 → registry mint lại đúng.
   const REGISTRY_ADMIN_ROLE = await registry.REGISTRY_ADMIN_ROLE();
 
   for (let i = 0; i < SHAREHOLDER_CONFIG.length; i++) {
@@ -108,34 +114,20 @@ async function main() {
       continue;
     }
 
-    // Transfer token từ accounts[0] sang accounts[i] (trừ accounts[0] đã có)
-    if (i > 0) {
-      // Trước tiên registry cần được cấp quyền mint hoặc owner transfer
-      // Ở đây dùng transfer trực tiếp từ accounts[0] (owner ban đầu)
-      // vì registry.addShareholder sẽ mint — nhưng ownership đã chuyển về registry
-      // → Dùng registry.addShareholder() cho tất cả accounts[1..4]
-    }
-
     // Tạo identity hash giả (demo)
     const identityHash = ethers.keccak256(
       ethers.toUtf8Bytes(`DEMO_CCCD_${i}_${acc.address}`)
     );
 
     try {
-      if (i === 0) {
-        // accounts[0] đã có token từ constructor, chỉ cần đăng ký vào registry
-        // Tạm thời chuyển ownership lại để addShareholder hoạt động với accounts[0]
-        // accounts[0] bypass: đăng ký thủ công bằng cách gọi registry
-        log(`ℹ️  accounts[0] (${cfg.name}) - token từ constructor, skip addShareholder`);
-      } else {
-        await registry.connect(accounts[0]).addShareholder(
-          acc.address,
-          identityHash,
-          toWei(cfg.hst),
-          cfg.tier
-        );
-        log(`✅ Registered: ${cfg.name} (accounts[${i}]) — ${fmt(Number(cfg.hst))} HST, Tier ${cfg.tier}`);
-      }
+      // Tất cả accounts đều dùng addShareholder — Registry sẽ mint đúng số
+      await registry.connect(accounts[0]).addShareholder(
+        acc.address,
+        identityHash,
+        toWei(cfg.hst),
+        cfg.tier
+      );
+      log(`✅ Registered: ${cfg.name} (accounts[${i}]) — ${fmt(Number(cfg.hst))} HST, Tier ${cfg.tier}`);
     } catch (err) {
       log(`❌ Failed ${cfg.name}: ${err.message}`);
     }
@@ -164,13 +156,16 @@ async function main() {
     registry:         registryAddress,
     governance:       govAddress,
     timelock:         timelockAddress,
-    shareholders:     SHAREHOLDER_CONFIG.slice(0, accounts.length).map((cfg, i) => ({
-      index:   i,
-      name:    cfg.name,
-      address: accounts[i]?.address ?? "N/A",
-      hst:     cfg.hst.toString(),
-      tier:    cfg.tier,
-    })),
+    shareholders:     SHAREHOLDER_CONFIG
+      .slice(0, Math.min(5, accounts.length))  // chỉ lưu 5 cổ đông thực, bỏ "Ví không hợp lệ"
+      .filter(cfg => cfg.hst > 0n)             // bỏ ví 0 token
+      .map((cfg, i) => ({
+        index:   i,
+        name:    cfg.name,
+        address: accounts[i]?.address ?? "N/A",
+        hst:     cfg.hst.toString(),
+        tier:    cfg.tier,
+      })),
   };
 
   const outDir = path.join(__dirname, "..", "dashboard");
