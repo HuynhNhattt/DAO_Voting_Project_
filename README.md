@@ -643,8 +643,8 @@ npx hardhat coverage
 > ⚠️ **ĐÂY LÀ MÔI TRƯỜNG DEMO — KHÔNG DÙNG PRODUCTION**
 
 - Private key được nhập trực tiếp vào dashboard — **chỉ dùng tài khoản Ganache test**
-- Không bao giờ dùng ví chứa tiền thật trên dashboard này
-- Môi trường production cần: MetaMask, hardware wallet, hoặc HSM
+- Không dùng ví chứa tiền thật trên dashboard này
+- Môi trường production cần: MetaMask, hardware wallet, hoặc HSM (nhưng tốn phí)
 - Contract chưa được audit bảo mật chuyên nghiệp
 
 ---
