@@ -537,13 +537,18 @@ def commit_vote_onchain(campaign_id: int, option_idx: int, salt_hex: str) -> tup
     w3 = st.session_state["w3"]
 
     try:
-        # hash = keccak256(abi.encodePacked(uint8(option), salt, msg.sender))
-        salt_bytes = bytes.fromhex(salt_hex.replace("0x", ""))
+        # hash = keccak256(abi.encodePacked(uint8(option), bytes32(salt), address(msg.sender)))
+        # QUAN TRỌNG: salt trong Solidity là bytes32 → phải pad đủ 32 bytes bên phải (rjust)
+        # abi.encodePacked(bytes32) = chính xác 32 bytes, không thêm length prefix
+        raw_salt = bytes.fromhex(salt_hex.replace("0x", ""))
+        # Nếu salt < 32 bytes thì pad phải bằng 0x00; nếu > 32 bytes thì cắt
+        salt_bytes32 = raw_salt[:32].ljust(32, b"\x00") if len(raw_salt) <= 32 else raw_salt[:32]
+        addr_bytes   = bytes.fromhex(addr.replace("0x", ""))   # 20 bytes
         vote_hash = w3.keccak(
             b"".join([
-                option_idx.to_bytes(1, "big"),
-                salt_bytes,
-                bytes.fromhex(addr.replace("0x", "")),
+                option_idx.to_bytes(1, "big"),   # uint8 → 1 byte
+                salt_bytes32,                     # bytes32 → đúng 32 bytes
+                addr_bytes,                       # address → 20 bytes
             ])
         )
         func = contracts["gov"].functions.commitVote(campaign_id, vote_hash)
@@ -567,7 +572,9 @@ def reveal_vote_onchain(campaign_id: int, option_idx: int, salt_hex: str) -> tup
     contracts = st.session_state["contracts"]
     w3 = st.session_state["w3"]
     try:
-        salt_bytes32 = bytes.fromhex(salt_hex.replace("0x", "")).ljust(32, b"\x00")[:32]
+        # PHẢI dùng cùng cách pad với commit: [:32] rồi ljust(32)
+        raw_salt     = bytes.fromhex(salt_hex.replace("0x", ""))
+        salt_bytes32 = (raw_salt[:32]).ljust(32, b"\x00") if len(raw_salt) <= 32 else raw_salt[:32]
         func = contracts["gov"].functions.revealVote(campaign_id, option_idx, salt_bytes32)
         tx = build_tx(func, addr, w3)
         receipt = send_signed_tx(tx, pk, w3)
@@ -1067,43 +1074,32 @@ elif "🗳️ Bỏ phiếu" in page:
         # Kiểm tra đã commit chưa (cho commit-reveal campaigns)
         if c.get("isCommitReveal") and c["status"] in ("COMMIT", "REVEAL"):
             try:
-                commitment = st.session_state["contracts"]["gov"].functions.getCommitment(campaign_id, wallet_addr).call()
-                # commitment là bytes32 — nếu khác 0x000...000 thì đã commit
-                # Xử lý mọi type: HexBytes (web3.py trả về), bytes, bytearray, int, str
-                _cb: bytes
-                if isinstance(commitment, int):
-                    _cb = commitment.to_bytes(32, "big")
-                elif isinstance(commitment, (bytes, bytearray)):
-                    # HexBytes kế thừa từ bytes → isinstance sẽ đúng
+                # Contract dùng: mapping(uint256 => mapping(address => bytes32)) public commitments;
+                # → gọi đúng: gov.functions.commitments(campaignId, address)
+                commitment = st.session_state["contracts"]["gov"].functions.commitments(
+                    campaign_id, wallet_addr
+                ).call()
+                # commitment trả về bytes32 — nếu khác 0x000...000 thì đã commit
+                if isinstance(commitment, (bytes, bytearray)):
                     _cb = bytes(commitment)
+                elif isinstance(commitment, int):
+                    _cb = commitment.to_bytes(32, "big")
                 elif isinstance(commitment, str):
-                    _hex = commitment.replace("0x", "")
-                    try:
-                        _cb = bytes.fromhex(_hex.zfill(64))
-                    except Exception:
-                        _cb = b'\x00' * 32
+                    _cb = bytes.fromhex(commitment.replace("0x", "").zfill(64))
                 else:
-                    # fallback: thử ép str rồi parse hex
-                    try:
-                        _cb = bytes.fromhex(str(commitment).replace("0x", "").zfill(64))
-                    except Exception:
-                        _cb = b'\x00' * 32
+                    _cb = b'\x00' * 32
 
                 already_committed_onchain = _cb != b'\x00' * 32
 
-                # FIX 2: Sync session dựa trên kết quả on-chain THỰC (không dùng session làm fallback)
                 if already_committed_onchain:
-                    # Ví này ĐÃ commit on-chain → đánh dấu vào my_votes của ví hiện tại
                     st.session_state.setdefault("my_votes", {})[campaign_id] = "COMMITTED"
                 else:
-                    # Ví này CHƯA commit on-chain → xóa trạng thái COMMITTED cũ
-                    # (quan trọng khi đổi ví: ví mới không thừa hưởng trạng thái của ví cũ)
                     st.session_state.get("my_votes", {}).pop(campaign_id, None)
-                    my_vote = None  # cập nhật lại biến local để logic bên dưới đúng
-            except Exception:
-                # Nếu contract không có hàm getCommitment → KHÔNG dùng session làm nguồn sự thật
-                # Để tránh Bug 2: reset về False thay vì fallback sang my_vote
-                already_committed_onchain = False
+                    my_vote = None
+            except Exception as _commit_err:
+                # Nếu gọi commitments() thất bại → fallback sang my_vote trong session
+                # (xảy ra khi không kết nối được, không phải lỗi logic)
+                already_committed_onchain = (my_vote == "COMMITTED")
 
     # Đã bỏ phiếu rồi (standard vote hoặc sau reveal)
     if already_voted_onchain or my_vote in ("FOR","AGAINST","ABSTAIN"):
