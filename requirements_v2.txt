@@ -1,0 +1,25 @@
+# DAO Voting System v2 — Python Dependencies
+# Cài đặt: pip install -r requirements_v2.txt
+
+# ── Web3 & Blockchain ─────────────────────────────────────────
+web3==6.15.1
+eth-account==0.11.2        # Ký message, recover address (Feature 3)
+eth-typing==4.1.0
+eth-utils==4.1.1
+
+# ── Dashboard ─────────────────────────────────────────────────
+streamlit==1.33.0
+watchdog==6.0.0
+
+# ── Data & Visualization ──────────────────────────────────────
+pandas==2.2.2
+plotly==5.21.0
+altair==5.3.0
+
+# ── Utilities ─────────────────────────────────────────────────
+python-dotenv==1.0.1
+requests==2.31.0
+
+# ── Dev / Testing ─────────────────────────────────────────────
+pytest==8.1.1
+pytest-asyncio==0.23.6

@@ -1,198 +1,115 @@
-// scripts/setup_demo.js
-// ============================================================
-//  Deploy toàn bộ contract + phân bổ token + lưu địa chỉ ra file
-//  Chạy: npx hardhat run scripts/setup_demo.js --network ganache
-//        npx hardhat run scripts/setup_demo.js --network hardhat
-// ============================================================
+// scripts/setup_demo.js — Cập nhật: link Timelock thật vào Governance
 const { ethers, network } = require("hardhat");
-const fs = require("fs");
+const fs   = require("fs");
 const path = require("path");
 
-// ─── Cấu hình cổ đông demo ────────────────────────────────────────────────────
-const SHAREHOLDER_CONFIG = [
-  // [0] Chủ tịch HĐQT — Sáng lập (45%) — đã giữ từ constructor
-  { name: "Chủ tịch HĐQT",       hst: 4_500_000n, tier: 3 },
-  // [1] Quỹ phát triển — Chiến lược (25%)
-  { name: "Quỹ phát triển",       hst: 2_500_000n, tier: 2 },
-  // [2] Cổ đông A — Tổ chức (15%)
-  { name: "Cổ đông A (Tổ chức)",  hst: 1_500_000n, tier: 1 },
-  // [3] Cổ đông B — Tổ chức (10%)
-  { name: "Cổ đông B (Tổ chức)",  hst: 1_000_000n, tier: 1 },
-  // [4] Cổ đông C — Nhỏ lẻ (5%)
-  { name: "Cổ đông C (Nhỏ lẻ)",   hst:   500_000n, tier: 0 },
-  // [5] Ví không hợp lệ — 0 token (để test reject)
-  { name: "Ví không hợp lệ",      hst:         0n, tier: 0 },
+const SHAREHOLDERS = [
+  { name: "Chủ tịch HĐQT",      hst: 4_500_000n, tier: 3 },
+  { name: "Quỹ phát triển",      hst: 2_500_000n, tier: 2 },
+  { name: "Cổ đông A (Tổ chức)", hst: 1_500_000n, tier: 1 },
+  { name: "Cổ đông B (Tổ chức)", hst: 1_000_000n, tier: 1 },
+  { name: "Cổ đông C (Nhỏ lẻ)",  hst:   500_000n, tier: 0 },
 ];
 
-// ─── Helper ───────────────────────────────────────────────────────────────────
-const toWei = (n) => ethers.parseUnits(n.toString(), 18);
-const fmt   = (n) => Number(n).toLocaleString("vi-VN");
+const toWei = n => ethers.parseUnits(n.toString(), 18);
+const fmt   = n => Number(n).toLocaleString("vi-VN");
+const ok    = msg => console.log(`  ✅ ${msg}`);
+const warn  = msg => console.log(`  ⚠️  ${msg}`);
+const section = t => console.log(`\n${"═".repeat(60)}\n  ${t}\n${"═".repeat(60)}`);
 
-function log(msg) { console.log(`  ${msg}`); }
-function section(title) {
-  console.log(`\n${"─".repeat(60)}`);
-  console.log(`  ${title}`);
-  console.log("─".repeat(60));
-}
-
-// ─── Main ─────────────────────────────────────────────────────────────────────
 async function main() {
   const accounts = await ethers.getSigners();
-  section(`🚀 Deploying on network: ${network.name}`);
-  log(`Deployer: ${accounts[0].address}`);
-  log(`Block:    ${await ethers.provider.getBlockNumber()}`);
+  section(`Deploy on ${network.name}`);
+  console.log(`  Deployer: ${accounts[0].address}`);
 
-  // ── 1. Deploy HSTToken ──────────────────────────────────────────────────────
-  section("1️⃣  Deploy HSTToken");
-  const HSTToken = await ethers.getContractFactory("HSTToken");
-  const hst = await HSTToken.deploy(accounts[0].address);
+  section("1 Deploy HSTToken");
+  const hst = await (await ethers.getContractFactory("HSTToken")).deploy(accounts[0].address);
   await hst.waitForDeployment();
   const hstAddress = await hst.getAddress();
-  log(`✅ HSTToken deployed: ${hstAddress}`);
-  log(`   Total supply: ${fmt(Number(ethers.formatUnits(await hst.totalSupply(), 18)))} HST`);
+  ok(`HSTToken: ${hstAddress}`);
 
-  // ── 2. Deploy ShareholderRegistry ──────────────────────────────────────────
-  section("2️⃣  Deploy ShareholderRegistry");
-  const Registry = await ethers.getContractFactory("ShareholderRegistry");
-  const registry = await Registry.deploy(hstAddress, accounts[0].address);
+  section("2 Deploy ShareholderRegistry");
+  const registry = await (await ethers.getContractFactory("ShareholderRegistry")).deploy(hstAddress, accounts[0].address);
   await registry.waitForDeployment();
   const registryAddress = await registry.getAddress();
-  log(`✅ ShareholderRegistry deployed: ${registryAddress}`);
-
-  // Burn toàn bộ 10M token ban đầu của accounts[0] TRƯỚC khi transfer ownership
-  // → Registry sẽ mint lại đúng số cho từng cổ đông qua addShareholder
-  const initialSupply = await hst.totalSupply();
-  await hst.burn(accounts[0].address, initialSupply);
-  log(`   Burned ${fmt(Number(ethers.formatUnits(initialSupply, 18)))} HST ban đầu ✅`);
-
-  // Chuyển ownership HSTToken sang Registry để Registry có thể mint
+  ok(`Registry: ${registryAddress}`);
+  await hst.burn(accounts[0].address, await hst.totalSupply());
   await hst.transferOwnership(registryAddress);
-  log(`   HSTToken ownership → Registry ✅`);
+  ok("Burn + transfer ownership");
 
-  // ── 3. Deploy GovernanceContract ───────────────────────────────────────────
-  section("3️⃣  Deploy GovernanceContract");
-  const Governance = await ethers.getContractFactory("GovernanceContract");
-  const gov = await Governance.deploy(hstAddress, registryAddress, accounts[0].address);
+  section("3 Deploy GovernanceContract");
+  const gov = await (await ethers.getContractFactory("GovernanceContract")).deploy(hstAddress, registryAddress, accounts[0].address);
   await gov.waitForDeployment();
   const govAddress = await gov.getAddress();
-  log(`✅ GovernanceContract deployed: ${govAddress}`);
+  ok(`Governance: ${govAddress}`);
+  await gov.grantRole(await gov.CAMPAIGN_MANAGER_ROLE(), accounts[0].address);
 
-  // Cấp CAMPAIGN_MANAGER_ROLE cho accounts[0]
-  const CAMPAIGN_MANAGER_ROLE = await gov.CAMPAIGN_MANAGER_ROLE();
-  await gov.grantRole(CAMPAIGN_MANAGER_ROLE, accounts[0].address);
-  log(`   CAMPAIGN_MANAGER_ROLE → accounts[0] ✅`);
-
-  // ── 4. Deploy TimelockController ───────────────────────────────────────────
-  section("4️⃣  Deploy HSTTimelockController");
-  const Timelock = await ethers.getContractFactory("HSTTimelockController");
-  const timelock = await Timelock.deploy(
-    [govAddress],           // proposers: chỉ Governance được queue
-    [ethers.ZeroAddress],   // executors: address(0) = bất kỳ ai có thể execute
-    accounts[0].address     // admin ban đầu
+  section("4 Deploy HSTTimelockController");
+  const timelock = await (await ethers.getContractFactory("HSTTimelockController")).deploy(
+    [govAddress], [ethers.ZeroAddress], accounts[0].address
   );
   await timelock.waitForDeployment();
   const timelockAddress = await timelock.getAddress();
-  log(`✅ TimelockController deployed: ${timelockAddress}`);
+  ok(`Timelock: ${timelockAddress}`);
 
-  // ── 5. Đăng ký cổ đông + phân bổ token ────────────────────────────────────
-  section("5️⃣  Phân bổ token cho cổ đông");
+  section("5 Deploy VotingCertificate");
+  const votingCert = await (await ethers.getContractFactory("VotingCertificate")).deploy(accounts[0].address);
+  await votingCert.waitForDeployment();
+  const votingCertAddress = await votingCert.getAddress();
+  ok(`VotingCertificate: ${votingCertAddress}`);
 
-  // Tất cả accounts đều dùng registry.addShareholder() để mint đúng số token.
-  // accounts[0] đã được burn 10M ở bước trên → supply = 0 → registry mint lại đúng.
-  const REGISTRY_ADMIN_ROLE = await registry.REGISTRY_ADMIN_ROLE();
+  // ══ ĐIỂM MỚI: Link Timelock vào Governance ══════════════════
+  section("6 LINK TIMELOCK -> GOVERNANCE (Moi)");
+  await gov.setTimelock(timelockAddress);
+  ok("gov.setTimelock() da duoc goi");
+  ok("finalizeCampaign() gio se QUEUE len Timelock thay vi EXECUTED thang");
+  const linked = await gov.timelock();
+  ok(`Verify: gov.timelock() = ${linked}`);
 
-  for (let i = 0; i < SHAREHOLDER_CONFIG.length; i++) {
-    const cfg = SHAREHOLDER_CONFIG[i];
-    if (i >= accounts.length) {
-      log(`⚠️  Bỏ qua ${cfg.name} — không đủ accounts`);
-      continue;
-    }
+  section("7 Link VotingCertificate");
+  await votingCert.grantRole(await votingCert.CERTIFIER_ROLE(), govAddress);
+  await gov.setCertificateContract(votingCertAddress);
+  ok("VotingCertificate linked");
 
-    const acc = accounts[i];
-    if (cfg.hst === 0n) {
-      log(`⏭️  ${cfg.name} (accounts[${i}]) — 0 HST, bỏ qua đăng ký`);
-      continue;
-    }
-
-    // Tạo identity hash giả (demo)
-    const identityHash = ethers.keccak256(
-      ethers.toUtf8Bytes(`DEMO_CCCD_${i}_${acc.address}`)
-    );
-
+  section("8 Dang ky co dong");
+  for (let i = 0; i < SHAREHOLDERS.length; i++) {
+    if (i >= accounts.length) continue;
+    const cfg = SHAREHOLDERS[i];
+    const identityHash = ethers.keccak256(ethers.toUtf8Bytes(`DEMO_${i}_${accounts[i].address}`));
     try {
-      // Tất cả accounts đều dùng addShareholder — Registry sẽ mint đúng số
-      await registry.connect(accounts[0]).addShareholder(
-        acc.address,
-        identityHash,
-        toWei(cfg.hst),
-        cfg.tier
-      );
-      log(`✅ Registered: ${cfg.name} (accounts[${i}]) — ${fmt(Number(cfg.hst))} HST, Tier ${cfg.tier}`);
-    } catch (err) {
-      log(`❌ Failed ${cfg.name}: ${err.message}`);
-    }
+      await registry.connect(accounts[0]).addShareholder(accounts[i].address, identityHash, toWei(cfg.hst), cfg.tier);
+      ok(`${cfg.name}: ${fmt(Number(cfg.hst))} HST`);
+    } catch (e) { warn(`${cfg.name}: ${e.message.slice(0, 60)}`); }
   }
 
-  // ── 6. Delegation — Mỗi cổ đông tự delegate cho mình ─────────────────────
-  section("6️⃣  Self-delegation (activate voting power)");
-  for (let i = 0; i < Math.min(5, accounts.length); i++) {
-    if (SHAREHOLDER_CONFIG[i].hst === 0n) continue;
+  section("9 Self-delegate");
+  for (let i = 0; i < Math.min(SHAREHOLDERS.length, accounts.length); i++) {
     try {
       await hst.connect(accounts[i]).delegate(accounts[i].address);
-      const vp = await hst.getVotes(accounts[i].address);
-      log(`✅ accounts[${i}] delegated → voting power: ${fmt(Number(ethers.formatUnits(vp, 18)))} HST`);
-    } catch (err) {
-      log(`⚠️  accounts[${i}] delegate failed: ${err.message}`);
-    }
+      ok(`accounts[${i}] delegated`);
+    } catch (e) { warn(`accounts[${i}]: ${e.message.slice(0, 40)}`); }
   }
 
-  // ── 7. Lưu địa chỉ contract ra file ───────────────────────────────────────
-  section("7️⃣  Lưu contract addresses");
+  section("10 Luu dia chi");
   const addresses = {
-    network:          network.name,
-    deployedAt:       new Date().toISOString(),
-    deployBlock:      await ethers.provider.getBlockNumber(),
-    hstToken:         hstAddress,
-    registry:         registryAddress,
-    governance:       govAddress,
-    timelock:         timelockAddress,
-    shareholders:     SHAREHOLDER_CONFIG
-      .slice(0, Math.min(5, accounts.length))  // chỉ lưu 5 cổ đông thực, bỏ "Ví không hợp lệ"
-      .filter(cfg => cfg.hst > 0n)             // bỏ ví 0 token
-      .map((cfg, i) => ({
-        index:   i,
-        name:    cfg.name,
-        address: accounts[i]?.address ?? "N/A",
-        hst:     cfg.hst.toString(),
-        tier:    cfg.tier,
-      })),
+    network: network.name, deployedAt: new Date().toISOString(),
+    deployBlock: await ethers.provider.getBlockNumber(),
+    hstToken: hstAddress, registry: registryAddress,
+    governance: govAddress, timelock: timelockAddress,
+    votingCertificate: votingCertAddress,
+    timelockLinked: true,
+    shareholders: SHAREHOLDERS.slice(0, Math.min(SHAREHOLDERS.length, accounts.length))
+      .map((cfg, i) => ({ index: i, name: cfg.name, address: accounts[i]?.address ?? "N/A", hst: cfg.hst.toString(), tier: cfg.tier })),
   };
-
   const outDir = path.join(__dirname, "..", "dashboard");
   fs.mkdirSync(outDir, { recursive: true });
-  fs.writeFileSync(
-    path.join(outDir, "contract_addresses.json"),
-    JSON.stringify(addresses, null, 2)
-  );
-  log(`✅ Saved → dashboard/contract_addresses.json`);
+  fs.writeFileSync(path.join(outDir, "contract_addresses.json"), JSON.stringify(addresses, null, 2));
+  ok("Saved contract_addresses.json");
 
-  // ── 8. Summary ─────────────────────────────────────────────────────────────
-  section("📊 Deployment Summary");
   console.log(`
-  ┌─────────────────────────────────────────────────────────┐
-  │  HSTToken         ${hstAddress}  │
-  │  Registry         ${registryAddress}  │
-  │  Governance       ${govAddress}  │
-  │  Timelock         ${timelockAddress}  │
-  └─────────────────────────────────────────────────────────┘
-
-  ✅ Setup hoàn tất! Chạy dashboard:
-     $env:PYTHONUTF8=1
-     streamlit run dashboard/app.py --server.fileWatcherType none
+  TIMELOCK DA DUOC LINK THAT:
+    finalizeCampaign() PASS -> QUEUED (cho delay)
+    executeDecision()        -> EXECUTED (co hieu luc)
   `);
 }
-
-main().catch((err) => {
-  console.error("❌ Deploy failed:", err);
-  process.exit(1);
-});
+main().catch(e => { console.error("Failed:", e); process.exit(1); });

@@ -1,46 +1,57 @@
 {
   "network": "ganache",
-  "deployedAt": "2026-05-07T03:49:31.781Z",
-  "deployBlock": 423,
-  "hstToken": "0xC3b0227A1015f3995285c637E308db7e19Ff429a",
-  "registry": "0x2dCfb8A6AB340A234E4D450ca99993A1e465ccb3",
-  "governance": "0x21270FCc8bCB986E0E24De99606D5BeeB618B7A0",
-  "timelock": "0xe9568F37EC1c3E819b65c863E5f8b03701BaEFca",
+  "chainId": 1337,
+  "deployedAt": "2026-06-16T15:42:54.520Z",
+  "deployBlock": 1203,
+  "hstToken": "0x04e878885c863147dD495533A9C521Ce09Aae7d4",
+  "registry": "0x974A8D93659543275722cB4f0C7F492DC679e2B6",
+  "governance": "0x6a14d6B0552573289179fC038CFFAFbA3E8816FF",
+  "timelock": "0x9b9aF3c893208f2CEA4A8aDef61e5d7b052Ea603",
+  "votingCertificate": "0xa15c9F3b934b5D1cFB701cA84a98d7a18E0F568E",
+  "identityVerifier": "0xf908B0b509258B578D193E37456Ab059D9Ee8501",
+  "kycSigner": "0x7CdDA1906f74bC60489c88014E59D43c5aE1E090",
+  "timelockLinked": true,
+  "kycEnabled": false,
   "shareholders": [
     {
       "index": 0,
       "name": "Chủ tịch HĐQT",
       "address": "0x7CdDA1906f74bC60489c88014E59D43c5aE1E090",
       "hst": "4500000",
-      "tier": 3
+      "tier": 3,
+      "kycVerified": true
     },
     {
       "index": 1,
       "name": "Quỹ phát triển",
       "address": "0xF154cdf664a7503dc99F583F3938Ae1025DB5700",
       "hst": "2500000",
-      "tier": 2
+      "tier": 2,
+      "kycVerified": true
     },
     {
       "index": 2,
       "name": "Cổ đông A (Tổ chức)",
       "address": "0x925A4276bb6dc38f343986545Ff93173205c51B5",
       "hst": "1500000",
-      "tier": 1
+      "tier": 1,
+      "kycVerified": true
     },
     {
       "index": 3,
       "name": "Cổ đông B (Tổ chức)",
       "address": "0xFd0Cc892A5c8F13f82234f1d19DCA19fe7Dcd59a",
       "hst": "1000000",
-      "tier": 1
+      "tier": 1,
+      "kycVerified": true
     },
     {
       "index": 4,
       "name": "Cổ đông C (Nhỏ lẻ)",
       "address": "0x78f45F34CdB10fF819C1706228012B50DbD91985",
       "hst": "500000",
-      "tier": 0
+      "tier": 0,
+      "kycVerified": true
     }
   ],
   "campaigns": [
@@ -74,40 +85,32 @@
       "proposalType": 2,
       "mechanism": 0,
       "commitReveal": true,
-      "label": "ID-104 · M&A · Linear · Commit-Reveal (đang ở giai đoạn COMMIT)"
+      "label": "ID-104 · M&A · Linear · Commit-Reveal (đang ở COMMIT)"
     },
     {
       "id": 5,
-      "title": "Phê duyệt kế hoạch mở rộng văn phòng Q3-2025",
+      "title": "Phe duyet ngan sach marketing Q3-2025",
       "proposalType": 0,
       "mechanism": 0,
       "commitReveal": false,
-      "label": "ID-201 · Routine · Linear · ACTIVE — tự vote"
+      "label": "#5 - ACTIVE - tu vote"
     },
     {
       "id": 6,
-      "title": "Tăng vốn điều lệ thêm 20% — Phát hành cổ phiếu mới",
-      "proposalType": 1,
-      "mechanism": 0,
-      "commitReveal": false,
-      "label": "ID-202 · Major · Linear · ACTIVE — tự vote"
-    },
-    {
-      "id": 7,
-      "title": "Bầu Trưởng ban Kiểm soát nhiệm kỳ 2025-2027",
+      "title": "Bau Truong ban Kiem soat nhiem ky 2025-2027",
       "proposalType": 1,
       "mechanism": 2,
       "commitReveal": false,
-      "label": "ID-203 · Major · Equal · ACTIVE — tự vote"
+      "label": "#6 - ACTIVE - tu vote"
     },
     {
-      "id": 8,
-      "title": "Hợp tác chiến lược với VietTech Group — Commit-Reveal",
-      "proposalType": 2,
-      "mechanism": 0,
-      "commitReveal": true,
-      "label": "ID-204 · M&A · Linear · Commit-Reveal — tự commit"
+      "id": 7,
+      "title": "Tang von dieu le them 10% - Phat hanh co phieu moi",
+      "proposalType": 1,
+      "mechanism": 1,
+      "commitReveal": false,
+      "label": "#7 - ACTIVE - tu vote"
     }
   ],
-  "campaignsSetupAt": "2026-05-07T04:45:26.711Z"
+  "campaignsSetupAt": "2026-06-16T15:43:34.196Z"
 }
