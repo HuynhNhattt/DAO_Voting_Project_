@@ -1,20 +1,52 @@
-# Node.js
+# ── Node.js ───────────────────────────────────────────────────
 node_modules/
+npm-debug.log*
+yarn-error.log
 
-# Hardhat / Smart Contract
+# ── Hardhat / Solidity ────────────────────────────────────────
 artifacts/
 cache/
-typechain-types/
 typechain/
+typechain-types/
+gas-report.txt
 
-# Các file môi trường (Chặn mọi biến thể của file .env)
+# ── Biến môi trường (QUAN TRỌNG — chứa private key) ──────────
 .env
 .env.*
 !.env.example
 
-# Các file test và báo cáo
+# ── Python ────────────────────────────────────────────────────
+__pycache__/
+*.py[cod]
+*.pyo
+.pytest_cache/
+.venv/
+venv/
+*.egg-info/
+
+# ── Streamlit cache ───────────────────────────────────────────
+.streamlit/
+
+# ── Dashboard generated files ─────────────────────────────────
+# File địa chỉ contract được generate sau khi deploy — KHÔNG commit
+# vì mỗi máy deploy ra địa chỉ khác nhau
+dashboard/contract_addresses.json
+dashboard/contract_addresses_amoy.json
+
+# Biên bản certificate tự động tạo ra
+dashboard/certificates/
+
+# ── Coverage / Test reports ───────────────────────────────────
 coverage/
 coverage.json
+lcov.info
 
-# Khác (Tùy chọn)
+# ── OS ────────────────────────────────────────────────────────
 .DS_Store
+Thumbs.db
+
+# ── IDE ───────────────────────────────────────────────────────
+.vscode/
+.idea/
+*.swp
+*.swo
